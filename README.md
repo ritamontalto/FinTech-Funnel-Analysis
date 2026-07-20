@@ -1,1 +1,1 @@
-# FinTech-Funnel-Analysis
+# FinTech Loan Application Funnel Analysis
