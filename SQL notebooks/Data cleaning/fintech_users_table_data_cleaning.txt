@@ -1,0 +1,433 @@
+
+--- DATA CLEANING, QUALITY CHECKS AND BUSINESS RULE VALIDATIONS - USERS TABLE
+
+--- I start by checking if I have distinct user IDs by comparing count and count distinct
+
+SELECT 
+COUNT(*)
+FROM users;
+
+SELECT 
+COUNT(DISTINCT user_id)
+FROM users;
+
+--- they match, so there are no duplicates, only unique users on each row as it should
+
+
+--- I check for missing values on the first name column
+
+SELECT
+COUNT(*) AS total_users,
+COUNT(first_name) AS present,
+COUNT(*)-COUNT(first_name) AS missing
+FROM users;
+
+
+--- none found, so I clean data formatting 
+
+SELECT first_name,
+INITCAP(TRIM(first_name)) AS clean_first_name
+FROM users;
+
+
+--- I check for missing values on the surname column
+
+SELECT
+COUNT(*) AS total_users,
+COUNT(surname) AS present,
+COUNT(*)-COUNT(surname) AS missing
+FROM users;
+
+
+--- none found, so I clean data formatting here as well
+
+SELECT surname, 
+INITCAP(TRIM(surname)) AS clean_surname
+FROM users;
+
+
+--- I check for missing values on the full name column
+
+SELECT
+COUNT(*) AS total_users,
+COUNT(full_name) AS present,
+COUNT(*)-COUNT(full_name) AS missing
+FROM users;
+
+
+--- none found, I clean data formatting 
+
+SELECT full_name, 
+INITCAP(TRIM(full_name)) AS clean_full_name
+FROM users;
+
+
+--- I check missing values on the city column
+
+SELECT
+COUNT(*) AS total_users,
+COUNT(city) AS present,
+COUNT(*)-COUNT(city) AS missing
+FROM users;
+
+
+--- none, so I check data format
+
+SELECT DISTINCT city
+FROM users
+GROUP BY city
+ORDER BY city;
+
+
+--- since data is not consistent, I clean it to make it more standard
+
+SELECT city,
+CASE
+    WHEN TRIM(city) = '' THEN NULL 
+ELSE INITCAP(TRIM(city))
+END AS clean_city
+FROM users;
+
+
+--- I check data on the region column 
+
+SELECT DISTINCT region
+FROM users
+GROUP BY region
+ORDER BY region;
+
+
+--- format is consistent here, but there are some missing values that I decide to mark as null values 
+
+SELECT region,
+CASE
+    WHEN TRIM(region) = '' THEN NULL 
+ELSE INITCAP(TRIM(region))
+END AS clean_region
+FROM users;
+
+
+--- then I check missing values on the country column
+
+SELECT
+COUNT(*) AS total_users,
+COUNT(country) AS present,
+COUNT(*)-COUNT(country) AS missing
+FROM users;
+
+
+--- none found, so I check data 
+
+SELECT DISTINCT country
+FROM users;
+
+
+--- found not consistent data, so I clean it and make it more standard
+
+SELECT country,
+CASE
+    WHEN TRIM(country) IN ('UK', 'uk', 'U.K.', 'United kingdom') THEN 'United Kingdom'
+	WHEN TRIM(country) = '' THEN NULL 
+ELSE INITCAP(TRIM(country))
+END AS clean_country
+FROM users;
+
+
+--- now I check missing values on the age column 
+
+
+SELECT
+COUNT(*) AS total_users,
+COUNT(age) AS present,
+COUNT(*)-COUNT(age) AS missing
+FROM users;
+
+
+--- found 1525 missing values. Now I check data and see what's the age range of the total amount of users
+
+SELECT DISTINCT age
+FROM users
+ORDER BY age;
+
+
+--- and I create a new column with age ranges that may be useful with the analysis later on, and define null values
+
+SELECT age,
+CASE
+	WHEN age BETWEEN 20 AND 35 THEN '20-35'
+	WHEN age BETWEEN 36 AND 50 THEN '36-50'
+	WHEN age BETWEEN 51 AND 65 THEN '51-65'
+ELSE NULL
+END AS age_range
+FROM users;
+
+
+--- now I check data on the gender column 
+
+SELECT gender
+FROM users
+GROUP BY gender;
+
+
+--- there are some missing values that I mark as null values to standardize data
+
+SELECT gender,
+CASE 
+	WHEN TRIM(gender) = '' THEN NULL 
+ELSE INITCAP(TRIM(gender))
+END AS clean_gender
+FROM users;
+
+
+--- I check missing values on income column
+
+SELECT
+COUNT(*) AS total_users,
+COUNT(income) AS present,
+COUNT(*)-COUNT(income) AS missing
+FROM users;
+
+
+--- 1588 missing values found, so I check data
+
+SELECT income
+FROM users
+WHERE income IS NOT NULL
+GROUP BY income
+ORDER BY income DESC;
+
+
+--- and I decide to create an income range column to ease analysis later on, and define null values as well
+
+SELECT income,
+CASE
+	WHEN income = 0 THEN NULL 
+	WHEN income < 15000 THEN 'Under 15k'
+	WHEN income < 30000 THEN '15k-30k'
+	WHEN income < 50000 THEN '30k-50k'
+	WHEN income < 75000 THEN '50k-75k'
+	WHEN income < 85000 THEN '75k-85k'
+ELSE NULL
+END AS income_range
+FROM users;
+
+
+--- then I check data on the employment status column 
+
+SELECT employment_status
+FROM users
+GROUP BY employment_status;
+
+
+--- found missing values that I mark as null values 
+
+SELECT employment_status,
+CASE 
+	WHEN TRIM(employment_status) = '' THEN NULL 
+ELSE TRIM(employment_status)
+END AS clean_employment_status
+FROM users;
+
+
+--- now I check data on marital status column
+
+SELECT marital_status
+FROM users
+GROUP BY marital_status;
+
+
+--- found some missing values again that I mark as null values 
+
+SELECT marital_status,
+CASE 
+	WHEN TRIM(marital_status) = '' THEN NULL 
+ELSE TRIM(marital_status)  
+END AS clean_marital_status
+FROM users;
+
+
+--- then I check if there are invalid email addresses on the email column 
+
+SELECT email
+FROM users
+WHERE email NOT LIKE '%@%.%'
+ORDER BY email DESC;
+
+
+--- and decide to replace them with null values
+
+SELECT email, 
+CASE 
+	WHEN TRIM(email) = '' THEN NULL
+	WHEN email NOT LIKE '%@%.%' THEN NULL
+ELSE LOWER(TRIM(email))
+END AS clean_email
+FROM users;
+
+
+--- I also check for duplicates on the email column
+
+SELECT email,
+COUNT(*)
+FROM users
+GROUP BY email
+HAVING COUNT(*)>1;
+
+--- none found
+
+
+--- I check the phone number column data formatting
+
+SELECT phone_number
+FROM users;
+
+SELECT phone_number
+FROM users
+WHERE phone_number IS NULL;
+
+
+--- data is quite messy and not consistent here, it must be fixed. I start removing non numeric characters 
+
+SELECT phone_number,
+REGEXP_REPLACE(phone_number, '[^0-9]', '', 'g') AS digits_only
+FROM users;
+
+
+--- then I standardize the format for all and define null values
+
+SELECT phone_number,
+CASE
+    WHEN phone_number IS NULL THEN NULL
+    WHEN phone_number = '' THEN NULL
+    WHEN LEFT(REGEXP_REPLACE(phone_number, '[^0-9]', '', 'g'), 2) = '44' 
+    	THEN CONCAT('+', REGEXP_REPLACE(phone_number, '[^0-9]', '', 'g'))
+ELSE CONCAT('+44',RIGHT(REGEXP_REPLACE(phone_number, '[^0-9]', '', 'g'), 10))
+END AS clean_phone_number
+FROM users;
+
+
+--- I check the data on the acquisition channel column 
+
+SELECT acquisition_channel
+FROM users
+GROUP BY acquisition_channel;
+
+
+--- there are some missing values that I mark as null values to standardize
+
+SELECT acquisition_channel,
+CASE
+	WHEN TRIM(acquisition_channel) = '' THEN NULL 
+ELSE TRIM(acquisition_channel)
+END AS clean_acquisition_channel
+FROM users;
+
+
+--- now I'm gonna do some data quality check, starting with coherency between age and employment status
+
+SELECT employment_status,
+MIN(age) AS min_age,
+MAX(age) AS max_age
+FROM users
+GROUP BY employment_status
+ORDER BY employment_status;
+
+--- data is consistent, nothing to clean or fix
+
+
+--- I also want to check coherency between income and employment status
+
+SELECT employment_status,
+MIN(income) AS min_income,
+ROUND(AVG(income)) AS avg_income,
+MAX(income) AS max_income
+FROM users
+GROUP BY employment_status
+ORDER BY employment_status;
+
+--- some student and unemployed users have income data. Maximum income values are below 15k while average is a little less than 7k for both. It's low income, which makes them plausible 
+
+
+--- I'm done with the data cleaning process. In order to keep the original dataset as is, I'm creating a new table with clean data that I can download and use for my analysis
+
+
+CREATE TABLE users_clean AS 
+SELECT user_id,
+INITCAP(TRIM(first_name)) AS first_name,
+INITCAP(TRIM(surname)) AS surname,
+INITCAP(TRIM(full_name)) AS full_name,
+CASE
+    WHEN TRIM(city) = '' THEN NULL 
+ELSE INITCAP(TRIM(city))
+END AS city,
+CASE
+    WHEN TRIM(region) = '' THEN NULL 
+ELSE INITCAP(TRIM(region))
+END AS region,
+CASE
+    WHEN TRIM(country) IN ('UK', 'uk', 'U.K.', 'United kingdom') THEN 'United Kingdom'
+	WHEN TRIM(country) = '' THEN NULL 
+ELSE INITCAP(TRIM(country))
+END AS country,
+age,
+CASE
+	WHEN "age" BETWEEN 20 AND 35 THEN '20-35'
+	WHEN "age" BETWEEN 36 AND 50 THEN '36-50'
+	WHEN "age" BETWEEN 51 AND 65 THEN '51-65'
+ELSE NULL
+END AS age_range,
+CASE 
+	WHEN TRIM(gender) = '' THEN NULL 
+ELSE INITCAP(TRIM(gender))
+END AS gender,
+income, 
+CASE
+	WHEN income = 0 THEN NULL 
+	WHEN income < 15000 THEN 'Under 15k'
+	WHEN income < 30000 THEN '15k-30k'
+	WHEN income < 50000 THEN '30k-50k'
+	WHEN income < 75000 THEN '50k-75k'
+	WHEN income < 85000 THEN '75k-85k'
+ELSE NULL
+END AS income_range,
+CASE 
+	WHEN TRIM(employment_status) = '' THEN NULL 
+ELSE TRIM(employment_status) 
+END AS employment_status,
+CASE 
+	WHEN TRIM(marital_status) = '' THEN NULL 
+ELSE TRIM(marital_status) 
+END AS marital_status,
+CASE 
+	WHEN TRIM(email) = '' THEN NULL
+	WHEN email NOT LIKE '%@%.%' THEN NULL
+ELSE LOWER(TRIM(email))
+END AS email,
+CASE
+    WHEN phone_number IS NULL THEN NULL
+    WHEN phone_number = '' THEN NULL
+    WHEN LEFT(REGEXP_REPLACE(phone_number, '[^0-9]', '', 'g'), 2) = '44' 
+    	THEN CONCAT('+', REGEXP_REPLACE(phone_number, '[^0-9]', '', 'g'))
+ELSE CONCAT('+44',RIGHT(REGEXP_REPLACE(phone_number, '[^0-9]', '', 'g'), 10))
+END AS phone_number,
+CASE
+	WHEN TRIM(acquisition_channel) = '' THEN NULL 
+ELSE TRIM(acquisition_channel)
+END AS acquisition_channel
+FROM users;
+
+
+--- I finally check the amount of unique user IDs on both tables, they must match
+
+SELECT 
+COUNT(DISTINCT user_id)
+FROM users;
+
+
+SELECT 
+COUNT(DISTINCT user_id)
+FROM users_clean;
+
+
+--- and I get an exact match
+

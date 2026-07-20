@@ -1,0 +1,202 @@
+
+--- DATA CLEANING, QUALITY CHECKS AND BUSINESS RULE VALIDATIONS - LOAN APPLICATIONS TABLE
+
+--- I start by checking if I have distinct loan IDs by comparing count and count distinct
+
+SELECT 
+COUNT(*)
+FROM loan_applications;
+
+SELECT 
+COUNT(DISTINCT loan_id)
+FROM loan_applications;
+
+--- they match, so there are no duplicates
+
+
+--- now I want to check if every user ID on this table exists on the Users table
+
+SELECT la.loan_id, la.user_id
+FROM loan_applications AS la
+LEFT JOIN users AS u
+ON la.user_id = u.user_id
+WHERE u.user_id IS NULL;
+
+--- I got no output, so the condition is valid
+
+
+--- now I check application date format
+
+SELECT DISTINCT application_date
+FROM loan_applications
+GROUP BY application_date;
+
+--- format is consistent, nothing to fix
+
+
+--- I check for missing values on the requested amount column
+
+SELECT
+COUNT(*) AS total_loans,
+COUNT(requested_amount) AS present,
+COUNT(*)-COUNT(requested_amount) AS missing
+FROM loan_applications;
+
+--- none found
+
+
+--- I check data on the currency column 
+
+SELECT currency
+FROM loan_applications
+GROUP BY currency;
+
+--- all GBP, no null values
+
+
+--- now I proceed checking for missing values on est credit score column
+
+SELECT
+COUNT(*) AS total_loans,
+COUNT(est_credit_score) AS present,
+COUNT(*)-COUNT(est_credit_score) AS missing
+FROM loan_applications;
+
+
+--- 1232 missing values, so I check if they're just missing or if there are some null values
+
+SELECT est_credit_score,
+COUNT (*) AS total_loans
+FROM loan_applications
+GROUP BY est_credit_score;
+
+--- they're all null values, nothing to fix or change
+
+
+--- now I check for missing values on requested term months column
+
+SELECT
+COUNT(*) AS total_loans,
+COUNT(requested_term_months) AS present,
+COUNT(*)-COUNT(requested_term_months) AS missing
+FROM loan_applications;
+
+
+--- 1244 missing values, again I'll check if they're just missing or if there are some null values
+
+SELECT requested_term_months,
+COUNT (*) AS total_loans
+FROM loan_applications
+GROUP BY requested_term_months;
+
+--- same here, they're all null values
+
+
+--- I check for missing values on loan purpose column
+
+SELECT
+COUNT(*) AS total_loans,
+COUNT(loan_purpose) AS present,
+COUNT(*)-COUNT(loan_purpose) AS missing
+FROM loan_applications;
+
+--- none
+
+
+--- now I check for missing values on acquisition channel column
+
+SELECT
+COUNT(*) AS total_loans,
+COUNT(acquisition_channel) AS present,
+COUNT(*)-COUNT(acquisition_channel) AS missing
+FROM loan_applications;
+
+--- none found, but I also want to check if acquisition channels match with the ones on the Users table, based on the common key 
+
+SELECT
+la.loan_id,
+la.user_id,
+u.acquisition_channel AS users_channel,
+la.acquisition_channel AS applications_channel
+FROM loan_applications AS la
+JOIN users AS u
+ON la.user_id = u.user_id
+WHERE la.acquisition_channel <> u.acquisition_channel;
+
+
+--- found some mismatching data, which is a data quality issue. First I'll check how much data is mismatching
+
+SELECT 
+COUNT(*) AS mismatches
+FROM loan_applications AS la
+JOIN users AS u
+ON la.user_id = u.user_id
+WHERE la.acquisition_channel IS DISTINCT FROM u.acquisition_channel;
+
+
+--- I got 4105 mismatches, which is relevant. To further investigate, I want to see if each user has multiple acquisition channels
+
+SELECT user_id,
+COUNT(DISTINCT acquisition_channel) AS channel_count
+FROM loan_applications
+GROUP BY user_id
+HAVING COUNT(DISTINCT acquisition_channel) > 1
+ORDER BY channel_count DESC;
+
+--- I got that some user IDs have 2 and some others have 3 acquisition channels listed
+
+--- For this project I'll correct data based on the Users table data, because in my data model the acquisition channel represents how the customer was originally acquired. Given that, the cause for these mismatches may be that every customer can submit multiple loan applications, making the Users table data more reliable. In a real world situation, I would discuss this issue with the team and engineers responsible for data acquisition, management and storage, in order to identify the issue and find a solution. 
+
+UPDATE loan_applications AS la
+SET acquisition_channel = u.acquisition_channel
+FROM users AS u
+WHERE la.user_id = u.user_id;
+
+
+--- I double check to see if my updates have been acquired
+
+SELECT
+la.loan_id,
+la.user_id,
+u.acquisition_channel AS users_channel,
+la.acquisition_channel AS applications_channel
+FROM loan_applications AS la
+JOIN users AS u
+ON la.user_id = u.user_id
+WHERE la.acquisition_channel <> u.acquisition_channel;
+
+--- no mismatches found, it worked
+
+
+--- I check the outcome column
+
+SELECT outcome
+FROM loan_applications 
+GROUP BY outcome;
+
+--- data is consistent
+
+
+--- Considering data quality and coherency, outcome column data must match with status data on the Application Events table, based on loan ID last event
+
+WITH last_event AS (
+    SELECT loan_id,
+    MAX(event_sequence) AS last_sequence
+    FROM application_events
+    GROUP BY loan_id
+)
+SELECT la.loan_id, la.outcome, ae.status AS final_status
+FROM loan_applications AS la
+JOIN last_event AS le
+ON la.loan_id = le.loan_id
+JOIN application_events AS ae
+ON ae.loan_id = le.loan_id AND ae.event_sequence = le.last_sequence
+WHERE NOT ((la.outcome = 'Granted' AND ae.status = 'Granted')
+	OR (la.outcome = 'Rejected' AND ae.status = 'Rejected')
+	OR (la.outcome = 'Pending Disbursement' AND ae.status IN ('Approved','Signed'))
+	OR (la.outcome = 'Abandoned - No Documents Uploaded' AND ae.status = 'Submitted')
+	OR (la.outcome = 'Abandoned - Document Issues' AND ae.status = 'Docs Received')
+	OR (la.outcome = 'Abandoned - Post Approval' AND ae.status = 'Approved'));
+
+--- I get no output, so they match
+

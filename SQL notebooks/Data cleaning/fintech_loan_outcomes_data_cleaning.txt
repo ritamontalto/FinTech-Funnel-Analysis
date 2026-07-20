@@ -1,0 +1,258 @@
+
+--- DATA CLEANING, QUALITY CHECKS AND BUSINESS RULE VALIDATIONS - LOAN OUTCOMES TABLE
+
+
+--- I start by checking that every loan ID on this table exists on the Loan Applications table
+
+SELECT lo.loan_id
+FROM loan_outcomes AS lo
+LEFT JOIN loan_applications AS la
+ON lo.loan_id = la.loan_id
+WHERE la.loan_id IS NULL;
+
+--- I got no output, so this condition is valid
+
+--- since I also have loan ID on the Application Events table, I want to check this condition as well
+
+SELECT lo.loan_id
+FROM loan_outcomes AS lo
+LEFT JOIN application_events AS ae
+ON lo.loan_id = ae.loan_id
+WHERE ae.loan_id IS NULL;
+
+--- no output here as well, so this condition is valid
+
+
+--- I check if I have distinct loan IDs by comparing count and count distinct
+
+SELECT 
+COUNT(*)
+FROM loan_outcomes;
+
+SELECT 
+COUNT(DISTINCT loan_id)
+FROM loan_outcomes;
+
+--- they match
+
+
+--- I check data on risk decision column
+
+SELECT risk_decision
+FROM loan_outcomes 
+GROUP BY risk_decision;
+
+
+--- there are some missing values that I turn into null values to standardize data
+
+SELECT risk_decision,
+CASE
+	WHEN risk_decision = '' THEN NULL 
+ELSE TRIM(risk_decision)
+END AS clean_risk_decision
+FROM loan_outcomes;
+
+
+--- now I check data on risk segment column
+
+SELECT risk_segment
+FROM loan_outcomes
+GROUP BY risk_segment;
+
+
+--- found some missing values here as well, I transform them into null values
+
+SELECT risk_segment,
+CASE
+	WHEN risk_segment = '' THEN NULL 
+ELSE TRIM(risk_segment)
+END AS clean_risk_segment
+FROM loan_outcomes;
+
+
+--- I check rejection reason column
+
+SELECT rejection_reason
+FROM loan_outcomes
+GROUP BY rejection_reason;
+
+
+--- there are missing values here as well, I turn them into null values
+
+SELECT rejection_reason,
+CASE
+	WHEN rejection_reason = '' THEN NULL 
+ELSE TRIM(rejection_reason)
+END AS clean_rejection_reason
+FROM loan_outcomes;
+
+
+--- I want to verify data quality and check that each rejected loan has exactly one rejected event
+
+SELECT loan_id,
+COUNT(*) AS rejected_events
+FROM application_events
+WHERE status = 'Rejected'
+GROUP BY loan_id
+HAVING COUNT(*) > 1;
+
+--- I got no output, the condition is valid
+
+
+--- I also want to verify that data on rejection reason column matches with refusal reason data on the Application Events table
+
+SELECT lo.loan_id, lo.rejection_reason, ae.refusal_reason
+FROM loan_outcomes AS lo
+JOIN application_events AS ae
+ON lo.loan_id = ae.loan_id
+WHERE ae.status = 'Rejected' AND lo.rejection_reason IS DISTINCT FROM ae.refusal_reason;
+
+--- I got no output, so they match as they should
+
+
+--- now I check data on approved amount column
+
+SELECT approved_amount
+FROM loan_outcomes
+GROUP BY approved_amount;
+
+
+--- granted amount column
+
+SELECT granted_amount
+FROM loan_outcomes
+GROUP BY granted_amount;
+
+
+--- estimated interest column
+
+SELECT estimated_interest
+FROM loan_outcomes
+GROUP BY estimated_interest;
+
+
+--- final interest rate column
+
+SELECT final_interest_rate
+FROM loan_outcomes
+GROUP BY final_interest_rate;
+
+--- it's all consistent, nothing to fix
+
+
+--- I also want to verify data quality by checking that interest rate values are not present for rejected loans
+
+SELECT 
+COUNT(*) AS invalid_interest_rate
+FROM loan_outcomes
+WHERE loan_status = 'Rejected' AND final_interest_rate IS NOT NULL;
+
+--- I got zero, so the condition is valid
+
+
+--- now I check data on loan status column 
+
+SELECT loan_status
+FROM loan_outcomes
+GROUP BY loan_status;
+
+
+--- and I want to check that when loan status is rejected, all amount and interest columns are empty
+
+SELECT loan_id, loan_status, approved_amount, granted_amount, estimated_interest, final_interest_rate
+FROM loan_outcomes
+WHERE loan_status = 'Rejected' 
+	AND (approved_amount IS NOT NULL
+    	OR granted_amount IS NOT NULL
+    	OR estimated_interest IS NOT NULL
+		OR final_interest_rate IS NOT NULL);
+
+--- I got no output, the condition is valid
+
+
+--- I check data on charge off flag column
+
+SELECT charge_off_flag
+FROM loan_outcomes 
+GROUP BY charge_off_flag;
+
+
+--- and I want to check data consistency, so I verify that when loan status is rejected, charge off flag column has zero
+
+SELECT loan_id, loan_status, charge_off_flag
+FROM loan_outcomes
+WHERE loan_status = 'Rejected' AND charge_off_flag = 1;
+
+--- I got no output, the condition is valid
+
+
+--- now I check data on charge off date column
+
+SELECT charge_off_date
+FROM loan_outcomes 
+GROUP BY charge_off_date;
+
+
+--- data is consistent but there are some missing values that I mark as null values to standardize
+
+SELECT charge_off_date,
+CASE
+	WHEN charge_off_date = '' THEN NULL 
+ELSE charge_off_date
+END AS clean_charge_off_date
+FROM loan_outcomes;
+
+
+--- I finally want to check that charge off date exists only if charge off flag is 1
+
+SELECT loan_id, loan_status, charge_off_flag, charge_off_date
+FROM loan_outcomes
+WHERE charge_off_flag = 0 AND charge_off_date IS NOT NULL AND charge_off_date <> '';
+
+--- no output, so the condition is valid
+
+    
+--- I'm done with the data cleaning process. In order to keep the original dataset as is, I'm creating a new table with clean data that I can download and use for my analysis
+
+CREATE TABLE loan_outcomes_clean AS
+SELECT loan_id,
+CASE
+	WHEN risk_decision = '' THEN NULL 
+ELSE TRIM(risk_decision)
+END AS risk_decision,
+CASE
+	WHEN risk_segment = '' THEN NULL 
+ELSE TRIM(risk_segment)
+END AS risk_segment,
+CASE
+	WHEN rejection_reason = '' THEN NULL 
+ELSE TRIM(rejection_reason)
+END AS rejection_reason,
+approved_amount,
+granted_amount,
+estimated_interest,
+final_interest_rate,
+loan_status,
+charge_off_flag,
+CASE
+	WHEN charge_off_date = '' THEN NULL 
+ELSE charge_off_date
+END AS charge_off_date
+FROM loan_outcomes;
+
+
+--- I finally verify the amount of unique loan IDs on both tables, they must match
+
+SELECT 
+COUNT(DISTINCT loan_id)
+FROM loan_outcomes;
+
+
+SELECT 
+COUNT(DISTINCT loan_id)
+FROM loan_outcomes_clean;
+
+
+--- and I get an exact match
+
+

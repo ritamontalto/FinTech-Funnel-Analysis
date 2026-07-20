@@ -1,0 +1,144 @@
+
+--- DATA CLEANING, QUALITY CHECKS AND BUSINESS RULE VALIDATIONS - APPLICATION EVENTS TABLE
+
+--- I check if every loan ID on this table exists on the Loan Applications table
+
+SELECT ae.loan_id
+FROM application_events AS ae
+LEFT JOIN loan_applications AS la
+ON ae.loan_id = la.loan_id
+WHERE la.loan_id IS NULL;
+
+--- I got no output, so this condition is valid
+
+
+--- since I also have loan ID on the Loan Outcomes table, I want to check this condition on this table as well
+
+SELECT ae.loan_id
+FROM application_events AS ae
+LEFT JOIN loan_outcomes AS lo
+ON ae.loan_id = lo.loan_id
+WHERE lo.loan_id IS NULL;
+
+--- no output again, so the condition is valid
+
+
+--- I check for duplicate events, particularly I'm looking for exact duplicate rows
+
+SELECT loan_id, status, event_datetime,
+COUNT(*) AS duplicates
+FROM application_events
+GROUP BY loan_id, status, event_datetime
+HAVING COUNT(*) > 1;
+
+--- I get no output, so there are no duplicate rows
+
+
+--- I check data on status column 
+
+SELECT status
+FROM application_events
+GROUP BY status;
+
+--- data is consistent, no null or missing values
+
+
+--- now I check refusal reason column
+
+SELECT refusal_reason
+FROM application_events
+GROUP BY refusal_reason;
+
+
+--- found some missing values, so I turn them into null values to standardize data
+
+SELECT refusal_reason,
+CASE 
+	WHEN refusal_reason = '' THEN NULL
+ELSE TRIM(refusal_reason)
+END AS refusal_reason_clean
+FROM application_events;
+
+
+--- I also want to check if refusal reasons only exist for rejected loans 
+
+--- First I check if there are refusal reasons for not rejected loans
+
+SELECT loan_id, status, refusal_reason
+FROM application_events
+WHERE status <> 'Rejected' AND refusal_reason IS NOT NULL AND refusal_reason <> ''
+
+--- none
+
+
+--- then I want to check if there are rejected loans without a refusal reason
+
+SELECT loan_id, status, refusal_reason
+FROM application_events
+WHERE status = 'Rejected'
+AND refusal_reason IS NULL;
+
+--- none
+
+
+--- now I check data on document issue flag column
+
+SELECT document_issue_flag
+FROM application_events
+GROUP BY document_issue_flag;
+
+--- data is consistent
+
+
+--- then I check fraud flag column
+
+SELECT fraud_flag 
+FROM application_events
+GROUP BY fraud_flag;
+
+--- data is also consistent here
+
+
+--- additionally I want to check if fraud flag data aligns with refusal reasons data 
+
+SELECT loan_id, fraud_flag, refusal_reason
+FROM application_events
+WHERE refusal_reason = 'Fraud flag' AND fraud_flag = 0;
+
+--- no output, the condition is valid
+
+
+
+--- I'm done with the data cleaning process. In order to keep the original dataset as is, I'm creating a new table that I can download and use for my analysis
+
+CREATE TABLE application_events_clean AS 
+SELECT
+event_id,
+loan_id,
+event_sequence,
+status,
+event_datetime,
+CASE 
+	WHEN refusal_reason = '' THEN NULL
+ELSE TRIM(refusal_reason)
+END AS refusal_reason,
+document_issue_flag,
+fraud_flag
+FROM application_events;
+
+
+--- now I verify the amount of unique loan IDs on both the new and the original table, they must match
+
+SELECT 
+COUNT(DISTINCT loan_id)
+FROM application_events;
+
+
+SELECT 
+COUNT(DISTINCT loan_id)
+FROM application_events_clean;
+
+
+--- and I get an exact match
+
+
