@@ -1,24 +1,24 @@
 # FinTech Loan Application Funnel Analysis
 
-End-to-End Business Intelligence project exploring customer behavior throughout a loan application funnel to identify conversion bottlenecks and evaluate portfolio risk.
+End-to-End Business Intelligence project analyzing customer behavior, funnel conversion and portfolio risk within a digital lending platform.
 
 ## Executive Summary
-Lending institutions must balance customer acquisition, conversion and portfolio quality while maintaining sustainable growth. This project presents an end-to-end business intelligence case study for a hypothetical FinTech lender, analyzing the complete loan application journey to identify conversion bottlenecks, understand customer behavior and evaluate portfolio performance. To simulate a realistic business environment, I generated four synthetic datasets representing customers, loan applications, application events and loan outcomes. The analysis combines SQL for data cleaning, preparation, validation and analysis, with Power BI for interactive business dashboards to deliver actionable business insights and support data driven decision-making.
+Lending institutions must balance customer acquisition, conversion and portfolio quality while maintaining sustainable growth. This project presents an end-to-end business intelligence case study for a hypothetical FinTech lender, analyzing the complete loan application journey to identify conversion bottlenecks, understand customer behavior and evaluate portfolio performance. To simulate a realistic business environment, 4 synthetic datasets were created representing customers, loan applications, application events and loan outcomes. The analysis combines SQL-based data preparation and business analysis with Power BI interactive reporting to deliver actionable business insights and support data driven decision-making.
 
 
 ## Business Problem
-A FinTech lender wants to improve the performance of its digital loan application process while maintaining a healthy loan portfolio. The Product Management team has observed that many applicants abandon the application journey before funding, but the reasons behind this behavior are unclear. At the same time, the Risk team wants to ensure that increasing loan approvals doesn't negatively impact portfolio quality through higher charge-off rates. Assuming the role of a Data Analyst, I investigated the complete loan application journey to identify opportunities for improving customer conversion while balancing credit risk and business performance. The analysis aims to answer the following questions:
+A FinTech lender wants to improve the performance of its digital loan application process while maintaining a healthy loan portfolio. The Product Management team observed that many applicants abandon the application journey before funding, but the reasons behind this behavior are unclear. At the same time, the Risk team wants to ensure that increasing loan approvals doesn't negatively impact portfolio quality through higher charge-off rates. This project investigates the complete loan application journey to identify opportunities for improving customer conversion while balancing credit risk and business performance. The analysis aims to answer the following questions:
 
 - Which customer segments achieve the highest approval rates?
 - Where do applicants drop out of the loan application funnel?
 - Which refusal reasons contribute most to lost applications?
-- Which acquisition channels attract higher-quality applicants?
+- Which acquisition channels generate the best balance between conversion and portfolio quality?
 - How does portfolio performance vary across customer segments?
 - Which business opportunities could improve both conversion and portfolio quality?
 
 
 ## Datasets
-As no publicly available dataset fully represented the required business scenario, I created four synthetic datasets to simulate the operations of a digital lending platform. The data was generated with the assistance of Anthropic's Claude and intentionally includes missing values, duplicate records, inconsistent formatting and data quality issues to support a realistic end-to-end analytics workflow. While AI was used exclusively to generate the fictional data, all data cleaning, validation, SQL development, business analysis, DAX measures, dashboard design, visualizations, insights and recommendations were independently designed, reviewed and implemented by me.
+As no publicly available dataset fully represented the required business scenario, I created 4 synthetic datasets to simulate operations of a digital lending platform. The data was generated with AI assistance and intentionally includes missing values, inconsistent formatting and data quality issues to support a realistic end-to-end analytics workflow. While AI was used exclusively to generate the fictional data, all data cleaning, validation, SQL development, business analysis, DAX measures, dashboard design, visualizations, insights and recommendations were independently designed, reviewed and implemented by me.
 
 
 ## Data Model
@@ -31,17 +31,18 @@ Users
   ▼
 Loan Applications
   │
+  │ 1 : Many
   ├──────────────► Application Events (multiple status updates)
   │                   
-  │
+  │ 1 : 1
   ▼
 Loan Outcomes
 ```
 
-- Users contains customer demographic information
-- Loan Applications stores application details and estimated credit risk
-- Application Events records each stage reached during the application journey
-- Loan Outcomes contains funded loan information and portfolio performance metrics
+- Users table contains customer demographic information
+- Loan Applications table stores application details and estimated credit risk
+- Application Events table records each stage reached during the application journey
+- Loan Outcomes table contains funded loan information and portfolio performance metrics
 
 ## Methodology
 This project follows an end-to-end business intelligence workflow, from raw data preparation to business recommendations:
@@ -60,18 +61,18 @@ Interactive Power BI Dashboard
 Business Insights & Recommendations
 ```
 
-Each stage of the workflow is summarised below.
+Each stage of the workflow is summarized below.
 
 **Data Cleaning & Validation** 
 
 Raw datasets were cleaned, standardized and validated before analysis to ensure consistency and reliability. Validation checks included:
 
-- Verified every application belongs to an existing customer
-- Ensured loan outcomes matched the final application status
-- Confirmed refusal reasons exist only for rejected applications
-- Verified interest rates are recorded only for granted loans
-- Checked consistency between loan status, charge-off flags and charge-off dates
-- Removed duplicate records and handled missing values
+- Verify that every application belongs to an existing customer
+- Ensure that loan outcomes matched the final application status
+- Confirm that refusal reasons exist only for rejected applications
+- Verify that interest rates are recorded only for granted loans
+- Check consistency between loan status, charge-off flags and charge-off dates
+- Remove duplicate records and handle missing values
 
 **Exploratory Business Analysis**
 - Analyzed customer demographics and borrowing behavior
@@ -85,10 +86,10 @@ Raw datasets were cleaned, standardized and validated before analysis to ensure 
 
 **Interactive Dashboard Development**
 - Built an interactive Power BI dashboard to monitor operational performance and portfolio health
-- Designed three reporting pages covering executive KPIs, funnel performance and credit risk analysis
+- Designed three reporting pages covering executive KPIs, funnel performance and risk analysis
 
 **Business Insights & Recommendations**
-- Synthesized the analytical findings into actionable business recommendations
+- Summarized the analytical findings into actionable business recommendations
 - Highlighted opportunities to improve conversion while maintaining portfolio quality
 
 
@@ -109,13 +110,16 @@ Charge-off rates vary across customer segments and acquisition channels, demonst
 #### How is credit risk reflected in pricing?
 Applicants with lower estimated credit scores receive higher average interest rates, indicating that lending decisions follow a risk-based pricing strategy.
 
+#### What opportunities exist to improve lending performance?
+Funnel inefficiencies represent a potential opportunity to increase funded loan volume and lending revenue by improving conversion at key stages of the customer journey.
+
 #### How can the business improve performance?
-Reducing applicant attrition at the largest funnel bottleneck represents the greatest opportunity to increase funded loans while maintaining portfolio quality.
+Improving applicant conversion at the largest funnel bottleneck represents the greatest opportunity to increase funded loans while maintaining portfolio quality.
 
 
 ## Business Recommendations
-- **Reduce applicant attrition before document submission** by simplifying the document upload experience and identifying friction points in the application journey
-- **Prioritize acquisition channels** that consistently combine high approval rates with low charge-off rates to maximize portfolio profitability
+- **Reduce applicant drop-off before document submission** by simplifying the document upload experience and identifying friction points in the application journey
+- **Prioritize acquisition channels** that consistently combine high approval rates with low charge-off rates to maximize portfolio performance
 - **Monitor portfolio quality continuously** across customer segments and credit score bands to detect changes in lending risk early
 - **Refine underwriting strategies** for borderline applicants by balancing approval rates with expected portfolio performance rather than relying solely on application volume
 - **Track funnel conversion and portfolio KPIs** through interactive dashboards to support data driven decision-making and continuous process improvement
@@ -134,7 +138,7 @@ Reducing applicant attrition at the largest funnel bottleneck represents the gre
 **SQL (PostgreSQL)**
 - Data cleaning
 - Data validation
-- Data quality check
+- Data quality checks
 - CTEs
 - Window functions
 - Joins
