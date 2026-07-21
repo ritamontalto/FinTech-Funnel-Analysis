@@ -5,111 +5,153 @@ End-to-End Business Intelligence project exploring customer behavior throughout 
 ## Executive Summary
 Lending institutions must balance customer acquisition, conversion and portfolio quality while maintaining sustainable growth. This project presents an end-to-end business intelligence case study for a hypothetical FinTech lender, analyzing the complete loan application journey to identify conversion bottlenecks, understand customer behavior and evaluate portfolio performance. To simulate a realistic business environment, I generated four synthetic datasets representing customers, loan applications, application events and loan outcomes. The analysis combines SQL for data cleaning, preparation, validation and analysis, with Power BI for interactive business dashboards to deliver actionable business insights and support data driven decision-making.
 
-------
 
-## Business Objectives
-I assumed that the product management team would like to:
+## Business Problem
+A FinTech lender wants to improve the performance of its digital loan application process while maintaining a healthy loan portfolio. The Product Management team has observed that many applicants abandon the application journey before funding, but the reasons behind this behavior are unclear. At the same time, the Risk team wants to ensure that increasing loan approvals doesn't negatively impact portfolio quality through higher charge-off rates. Assuming the role of a Data Analyst, I investigated the complete loan application journey to identify opportunities for improving customer conversion while balancing credit risk and business performance. The analysis aims to answer the following questions:
 
-- Explore customer demographics and borrowing behavior
-- Analyze application outcomes across customer segments
-- Identify conversion bottlenecks throughout the application funnel
-- Evaluate portfolio quality using charge-off metrics
-- Build an interactive Power BI dashboard for business monitoring
-
-
-## Skills & Tools
-Analytics: Funnel Analysis, Exploratory Analysis, KPI development, business insight generation
-
-SQL: PostgreSQL, CTEs, Window functions, Joins, Case statements, Aggregations, data cleaning
-
-Power BI: data modeling, DAX measures, interactive dashboards, data visualization
-
-Claude: generation of synthetic datasets, brainstorming support
-
-
-## Methodology
-1. Data cleaning and preparation: SQL queries that extract, clean and transform data from the database.
-2. Exploratory Business Analysis: SQL queries that select specific data to answer business questions.
-3. Funnel Analysis:
-4. Dashboard development: Power BI dashboards that display performance and risk, funnel analysis and overview insights through cards, charts and interactive filtering.
-
-
-## Data Workflow
-Raw Data
- 
-↓
-
-Data Cleaning
-
-↓
-
-Data Validation
-
-↓
-
-Exploratory Business Analysis
- 
-↓
-
-Funnel Analysis
-
-↓
-
-Power BI Dashboard
-
-↓
-
-Business Insights & Recommendations
-
-
-## Data Validation Checks
-- Verified every application belongs to an existing customer.
-- Ensured loan outcomes matched the final application status.
-- Confirmed refusal reasons exist only for rejected applications.
-- Verified interest rates are recorded only for granted loans.
-- Checked consistency between loan status, charge-off flags and charge-off dates.
-- Removed duplicate records and handled missing values.
-
-
-## Data Model
-Users
-
-↓
-
-Loan Applications
-
-↓
-
-Application Events
-
-↓
-
-Loan Outcomes
+- Which customer segments achieve the highest approval rates?
+- Where do applicants drop out of the loan application funnel?
+- Which refusal reasons contribute most to lost applications?
+- Which acquisition channels attract higher-quality applicants?
+- How does portfolio performance vary across customer segments?
+- Which business opportunities could improve both conversion and portfolio quality?
 
 
 ## Datasets
-The datasets used in this project are synthetically generated and do not contain real information. They were created with the assistance of Anthropic's Claude specifically for portfolio purposes to mimic realistic financial and users data, including intentional inconsistencies, missing values, duplicate records and formatting issues to support a complete data cleaning and funnel analysis workflow. 
-I used AI to generate fictional data for analysis. All SQL queries, data cleaning decisions, business logics, dashboard design, DAX measures, analysis and final interpretations were independently designed, reviewed, adapted and implemented by myself.
-
-- Users table: Customer demographic information
-- Loan Applications table:	Loan requests and application outcomes
-- Application Events table: Status changes throughout the application process
-- Loan Outcomes	table: Funded loan details and repayment performance
+As no publicly available dataset fully represented the required business scenario, I created four synthetic datasets to simulate the operations of a digital lending platform. The data was generated with the assistance of Anthropic's Claude and intentionally includes missing values, duplicate records, inconsistent formatting and data quality issues to support a realistic end-to-end analytics workflow. While AI was used exclusively to generate the fictional data, all data cleaning, validation, SQL development, business analysis, DAX measures, dashboard design, visualizations, insights and recommendations were independently designed, reviewed and implemented by me.
 
 
-## Key Business Insights & Results 
-- The largest reduction in applicant volume occurs before document submission.
-- Acquisition channels differ considerably in both approval rate and portfolio quality.
-- Higher estimated credit scores are associated with stronger approval rates and lower interest rates.
-- Charge-off rates vary across customer segments, highlighting differences in portfolio risk.
-- Improving conversion at the largest funnel bottleneck could materially increase funded lending.
+## Data Model
+The analysis follows a relational data model centered around the loan application lifecycle:
+
+```
+Users
+  │
+  │ 1 : Many
+  ▼
+Loan Applications
+  │
+  ├──────────────► Application Events (multiple status updates)
+  │                   
+  │
+  ▼
+Loan Outcomes
+```
+
+- Users contains customer demographic information
+- Loan Applications stores application details and estimated credit risk
+- Application Events records each stage reached during the application journey
+- Loan Outcomes contains funded loan information and portfolio performance metrics
+
+## Methodology
+This project follows an end-to-end business intelligence workflow, from raw data preparation to business recommendations:
+
+```
+Raw Data
+   ↓
+Data Cleaning & Validation
+   ↓
+Exploratory Business Analysis
+   ↓
+Funnel Analysis
+   ↓
+Interactive Power BI Dashboard
+   ↓
+Business Insights & Recommendations
+```
+
+Each stage of the workflow is summarised below.
+
+**Data Cleaning & Validation** 
+
+Raw datasets were cleaned, standardized and validated before analysis to ensure consistency and reliability. Validation checks included:
+
+- Verified every application belongs to an existing customer
+- Ensured loan outcomes matched the final application status
+- Confirmed refusal reasons exist only for rejected applications
+- Verified interest rates are recorded only for granted loans
+- Checked consistency between loan status, charge-off flags and charge-off dates
+- Removed duplicate records and handled missing values
+
+**Exploratory Business Analysis**
+- Analyzed customer demographics and borrowing behavior
+- Investigated application outcomes across customer segments
+- Evaluated acquisition channel performance, credit risk and portfolio quality
+
+**Funnel Analysis**
+- Mapped the complete application journey from submission to funding
+- Measured conversion rates at each stage
+- Identified the largest drop-off points and compared funnel performance across customer segments
+
+**Interactive Dashboard Development**
+- Built an interactive Power BI dashboard to monitor operational performance and portfolio health
+- Designed three reporting pages covering executive KPIs, funnel performance and credit risk analysis
+
+**Business Insights & Recommendations**
+- Synthesized the analytical findings into actionable business recommendations
+- Highlighted opportunities to improve conversion while maintaining portfolio quality
+
+
+## Key Findings
+
+#### Where are applicants dropping out of the loan application funnel?
+The largest reduction in applicant volume occurs before the document submission stage, making it the primary conversion bottleneck in the customer journey.
+
+#### Which customer segments are most likely to be approved?
+Applicants with stronger estimated credit scores achieve substantially higher approval rates, while approval patterns also vary across income groups and acquisition channels.
+
+#### Which acquisition channels perform best?
+Acquisition channels differ considerably in both application volume and approval rate. Comparing conversion alongside portfolio quality highlights the channels that generate the highest business value.
+
+#### Which customer segments present the greatest portfolio risk?
+Charge-off rates vary across customer segments and acquisition channels, demonstrating that high loan volumes don't always translate into better portfolio performance.
+
+#### How is credit risk reflected in pricing?
+Applicants with lower estimated credit scores receive higher average interest rates, indicating that lending decisions follow a risk-based pricing strategy.
+
+#### How can the business improve performance?
+Reducing applicant attrition at the largest funnel bottleneck represents the greatest opportunity to increase funded loans while maintaining portfolio quality.
 
 
 ## Business Recommendations
-- Simplify the document submission process to reduce applicant attrition.
-- Increase investment in acquisition channels that combine high approval rates with low charge-off rates.
-- Continue monitoring portfolio quality across credit score bands.
-- Review underwriting criteria for borderline applicants to balance growth and credit risk.
+- **Reduce applicant attrition before document submission** by simplifying the document upload experience and identifying friction points in the application journey
+- **Prioritize acquisition channels** that consistently combine high approval rates with low charge-off rates to maximize portfolio profitability
+- **Monitor portfolio quality continuously** across customer segments and credit score bands to detect changes in lending risk early
+- **Refine underwriting strategies** for borderline applicants by balancing approval rates with expected portfolio performance rather than relying solely on application volume
+- **Track funnel conversion and portfolio KPIs** through interactive dashboards to support data driven decision-making and continuous process improvement
+
+
+## Skills Demonstrated
+
+**Business Analysis**
+- Exploratory Business Analysis 
+- Funnel analysis
+- Customer segmentation
+- Credit risk analysis
+- KPI definition and performance monitoring
+- Business insight generation
+
+**SQL (PostgreSQL)**
+- Data cleaning
+- Data validation
+- Data quality check
+- CTEs
+- Window functions
+- Joins
+- Aggregations
+- CASE statements
+- Business oriented analytical queries
+
+**Power BI**
+- Data modelling
+- DAX measures
+- Interactive dashboards
+- KPI cards and visualizations
+- Slicers and cross-filtering
+
+**AI Assisted Development**
+- Synthetic dataset generation (Claude)
+- Brainstorming and workflow support
 
 
 ## Project Files
