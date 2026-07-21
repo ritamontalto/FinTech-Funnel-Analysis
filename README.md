@@ -147,7 +147,7 @@ Improving applicant conversion at the largest funnel bottleneck represents the g
 - Business oriented analytical queries
 
 **Power BI**
-- Data modelling
+- Data modeling
 - DAX measures
 - Interactive dashboards
 - KPI cards and visualizations
